@@ -2,6 +2,7 @@ defmodule KissTest do
   use ExUnit.Case
   doctest Kiss
 
+  @tag :skip
   test "README install version check" do
     app = :kiss
 
@@ -27,12 +28,19 @@ defmodule KissTest do
 
     message = Kiss.AX25Parser.parse(test_packet)
 
-    assert message.destination_address == 'ID    '
+    assert message.destination_address == "ID"
   end
 
   test "1 in MSB of SSID field indicates should indicate that the message has been repeated" do
     ssid = <<0b10000000>>
-    result = Kiss.AX25Parser.parse_ssid(ssid)
+    {:ok, result} = Kiss.AX25Parser.parse_ssid(ssid)
     assert result.has_been_repeated == true
+  end
+
+  test "Unrecognized packet should not cause crash" do
+    test_packet = <<130, 160, 164, 176, 100, 112, 96, 174, 130, 110, 172>>
+    {:err, reason} = Kiss.AX25Parser.parse(test_packet)
+
+    assert reason != nil
   end
 end
